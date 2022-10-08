@@ -64,6 +64,9 @@ contract PrivacyPool is Ownable {
   function withdrawPublic(
     uint256 nullifier,
     uint256 trapdoor,
+    // TODO instead of accepting the nullifierHash from the client,
+    //   generate the full proof and nullifierHash in Solidity,
+    //   in order to ensure the client is not sending false data
     uint256 nullifierHash
   ) external {
     uint256 identityCommitment = generateCommitment(nullifier, trapdoor);
