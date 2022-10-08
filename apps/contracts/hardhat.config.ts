@@ -4,8 +4,8 @@ import { resolve } from "path"
 import { HardhatUserConfig } from "hardhat/types"
 
 import "./tasks/createProof"
-import "./tasks/deployTazMessage"
-import "./tasks/deployTazArtwork"
+import "./tasks/deployMockToken"
+import "./tasks/deployPrivacyPool"
 
 dotenvConfig({ path: resolve(__dirname, "./.env") })
 
