@@ -32,6 +32,7 @@ describe("PrivacyPool", () => {
       groupId: GROUP_ID,
       token: token.address,
       amount: DEPOSIT_AMOUNT,
+      committeeKey: signer2.address
       logs: true
     })
   });
@@ -40,7 +41,8 @@ describe("PrivacyPool", () => {
     it("Should deposit the token", async () => {
       const mint  = token.connect(signer1).mint(signer1.address, DEPOSIT_AMOUNT);
       await expect(mint).to.not.be.reverted
-      // TODO approve
+      const approval = token.connect(signer1).approve(contract.address, DEPOSIT_AMOUNT);
+      await expect(approval).to.not.be.revertefd
 
       const identity = new Identity(identitySeed)
       const identityCommitment = identity.generateCommitment()
@@ -61,10 +63,21 @@ describe("PrivacyPool", () => {
           logs: false
       })
 
+      const signature = signer2.signMessage(ethers.utils.solidityPack(
+        ['uint256', 'bytes32', 'uint256', 'uint256', 'uint256[8]'],
+        [
+          proofElements.merkleTreeRoot,
+          proofElements.signalBytes32,
+          proofElements.nullifierHash,
+          proofElements.externalNullifier,
+          proofElements.solidityProof,
+        ]
+      ));
+
       const tx = contract
-          .connect(signer1)
-          .replyToMessage(
-              parentMessageId,
+          .connect(signer2)
+          .withdrawPrivate(
+              signature,
               messageContent,
               proofElements.groupId,
               proofElements.merkleTreeRoot,
@@ -75,7 +88,7 @@ describe("PrivacyPool", () => {
               { gasLimit: 1500000 }
           )
 
-      await expect(tx).to.emit(contract, "MessageAdded").withArgs(parentMessageId, anyValue, messageContent)
+      await expect(tx).to.emit(contract, "WithdrawPrivate").withArgs(signal, proofElements.nullifierHash)
     });
   });
 });
